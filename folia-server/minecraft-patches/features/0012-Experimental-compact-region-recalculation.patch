@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenAI <noreply@openai.com>
+Date: Thu, 12 Nov 2026 04:00:00 +0000
+Subject: [PATCH] Experimental compact region recalculation
+
+Reduce the section threshold and empty-section halo so unloaded trails can
+be reclaimed sooner. This does not hard-cap continuously loaded regions.
+
+diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
+index 0000000000000000000000000000000000000000..0000000000000000000000000000000000000000 100644
+--- a/net/minecraft/server/level/ServerLevel.java
++++ b/net/minecraft/server/level/ServerLevel.java
+@@ -707,9 +707,9 @@
+         this.regioniser = new io.papermc.paper.threadedregions.ThreadedRegionizer<>(
+-                (int)Math.max(1L, (8L * 16L * 16L) / (1L << (2 * (io.papermc.paper.threadedregions.TickRegions.getRegionChunkShift())))),
+-                (1.0 / 6.0),
+-                Math.max(1, 8 / (1 << io.papermc.paper.threadedregions.TickRegions.getRegionChunkShift())),
++                2, // Recalculate even very small regions once they contain dead sections.
++                0.05, // Recalculate after 5% of the sections become dead.
++                1, // Keep only a one-section empty halo around loaded sections.
+                 1,
+                 io.papermc.paper.threadedregions.TickRegions.getRegionChunkShift(),
+                 this,
+                 this.tickRegions
+         );
